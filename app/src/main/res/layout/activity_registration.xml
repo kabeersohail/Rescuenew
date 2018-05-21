@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@drawable/bg1"
+    tools:context=".Registration">
+
+    <TextView
+        android:text="@string/signup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        android:gravity="center_horizontal"
+        />
+
+    <EditText
+        android:padding="5dp"
+        android:background="#FFFFFF"
+        android:layout_marginEnd="20dp"
+        android:id="@+id/XmlName"
+        android:layout_marginTop="20dp"
+        android:hint="@string/name"
+        android:inputType="textEmailAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp" />
+
+    <EditText
+        android:padding="5dp"
+        android:layout_marginEnd="20dp"
+        android:background="#FFFFFF"
+        android:id="@+id/XmlEmail"
+        android:layout_marginTop="20dp"
+        android:hint="@string/email"
+        android:inputType="textEmailAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp" />
+
+    <EditText
+        android:padding="5dp"
+        android:background="#FFFFFF"
+        android:id="@+id/XmlPassword"
+        android:inputType="textPassword"
+        android:layout_marginTop="20dp"
+        android:hint="@string/password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"/>
+
+    <EditText
+        android:padding="5dp"
+        android:layout_marginEnd="20dp"
+        android:background="#FFFFFF"
+        android:id="@+id/XmlRePassword"
+        android:inputType="textPassword"
+        android:layout_marginTop="20dp"
+        android:hint="@string/repassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp" />
+
+    <Button
+        android:id="@+id/XmlSignUp"
+        android:layout_marginTop="30dp"
+        android:text="@string/signup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"/>
+
+</LinearLayout>

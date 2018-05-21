@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="160dp"
+    android:background="@drawable/helpingbanner"
+    android:orientation="vertical"
+    android:padding="5dp"
+    >
+
+
+        <TextView
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textColor="#2F4859"
+            />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/Xmlprofilepic"
+            android:layout_width="80dp"
+            android:layout_height="100dp"
+            android:src="@drawable/profilepic"
+            />
+
+
+
+
+</LinearLayout>
+

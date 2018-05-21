@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:background="@drawable/background"
+    tools:context=".MainActivity">
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        android:gravity="center_horizontal" />
+
+    <EditText
+        android:id="@+id/XmlEmail"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="20dp"
+        android:background="#FFFFFF"
+        android:hint="@string/email"
+        android:padding="5dp"
+        android:inputType="textEmailAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp" />
+
+    <EditText
+        android:background="#FFFFFF"
+        android:id="@+id/XmlPassword"
+        android:inputType="textPassword"
+        android:padding="5dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:hint="@string/password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <Button
+        android:id="@+id/XmlSignIn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/signin" />
+
+    <TextView
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/newuser"
+        android:textColor="#FFFFFF"
+        android:textSize="25sp"
+        android:gravity="center_horizontal"
+        />
+
+    <Button
+        android:id="@+id/XmlSignUp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/signup" />
+
+    <!--<com.google.android.gms.common.SignInButton-->
+    <!--android:id="@+id/XmlGoogleSignIn"-->
+    <!--android:background="@drawable/btn_google_signin_dark_focus_hdpi"-->
+    <!--android:layout_marginTop="30dp"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content" />-->
+
+    <Button
+        android:id="@+id/XmlGoogleSignIn"
+        android:layout_marginLeft="40dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="40dp"
+        android:layout_width="match_parent"
+        android:text="Sign in with Google"
+        android:textColor="#FFFFFF"
+        android:layout_height="wrap_content"
+        android:background="@drawable/btn_google_dark_disabled_hdpi"/>
+
+</LinearLayout>
