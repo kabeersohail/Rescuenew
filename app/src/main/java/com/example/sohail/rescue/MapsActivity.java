@@ -655,6 +655,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         switch(which){
                                             case 0:{
                                                 Toast.makeText(MapsActivity.this,"Request accepted",Toast.LENGTH_SHORT).show();
+                                                FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+                                                String uid = firebaseUser.getUid();
+                                                Rescuer rescuer = new Rescuer(MyLat,MyLong,namE,uid);
+
+                                                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Rescuer");
+                                                databaseReference.child(uid).setValue(rescuer);
                                             }break;
                                             case 1:{
                                                 Toast.makeText(MapsActivity.this,"Request rejected",Toast.LENGTH_SHORT).show();
