@@ -646,20 +646,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                             @Override
                             public void onInfoWindowClick(Marker marker) {
-                                String[] items={"Do you want to accept request ?","Yes","No"};
+                                String[] items={"Yes","No"};
                                 final AlertDialog.Builder itemDilog = new AlertDialog.Builder(MapsActivity.this);
-                                itemDilog.setTitle("");
+                                itemDilog.setTitle("Do you really want to accept request ?");
                                 itemDilog.setCancelable(true);
                                 itemDilog.setItems(items, new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                         switch(which){
                                             case 0:{
-                                                itemDilog.show();
-                                            }break;
-                                            case 1:{
                                                 Toast.makeText(MapsActivity.this,"Request accepted",Toast.LENGTH_SHORT).show();
                                             }break;
-                                            case 2:{
+                                            case 1:{
                                                 Toast.makeText(MapsActivity.this,"Request rejected",Toast.LENGTH_SHORT).show();
                                             }break;
                                         }
