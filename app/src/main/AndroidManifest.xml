@@ -58,7 +58,7 @@
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity android:name=".EmergencyList" />
         <activity android:name=".EmergencyPeople" />
         <activity android:name=".LocationOfNeedy" />
@@ -76,7 +76,7 @@
         <!-- android:exported="true" /> -->
         <service
             android:name=".HelloService"
-            android:enabled="true"></service>
+            android:enabled="true" />
 
         <receiver
             android:name=".SensorRestarterBroadcastReceiver"
@@ -88,7 +88,8 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".Settings"></activity>
+        <activity android:name=".Settings" />
+        <activity android:name=".Markers"></activity>
     </application>
 
 </manifest>

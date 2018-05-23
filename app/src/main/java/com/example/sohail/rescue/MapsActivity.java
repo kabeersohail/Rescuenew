@@ -128,7 +128,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     Integer Select_File = 0;
     LinearLayout GoogleBtn;
     CircleImageView circleImageView;
-    TextView JavaNeedShow,JavaPhoneShow,JavaCommissionShow,JavaNameShow;
+    TextView JavaNeedShow,JavaPhoneShow,JavaCommissionShow,JavaNameShow,JavaAccept;
     static int count=0;
     public static boolean out;
     NavigationView navigationView;
@@ -643,12 +643,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 }
                             }
 
+                        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                            @Override
+                            public void onInfoWindowClick(Marker marker) {
+                                String[] items={"Do you want to accept request ?","Yes","No"};
+                                final AlertDialog.Builder itemDilog = new AlertDialog.Builder(MapsActivity.this);
+                                itemDilog.setTitle("");
+                                itemDilog.setCancelable(true);
+                                itemDilog.setItems(items, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        switch(which){
+                                            case 0:{
+                                                itemDilog.show();
+                                            }break;
+                                            case 1:{
+                                                Toast.makeText(MapsActivity.this,"Request accepted",Toast.LENGTH_SHORT).show();
+                                            }break;
+                                            case 2:{
+                                                Toast.makeText(MapsActivity.this,"Request rejected",Toast.LENGTH_SHORT).show();
+                                            }break;
+                                        }
+
+                                    }
+                                });
+                                itemDilog.show();
+                            }
+                        });
+
                         if(mMap!=null){
                             mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
                                 @Override
                                 public View getInfoWindow(Marker marker) {
                                     return null;
                                 }
+
+
 
                                 @Override
                                 public View getInfoContents(Marker marker) {
@@ -663,6 +692,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     if(amI == null) {
 
                                         if(!namE.equals(name)){
+                                            JavaAccept = v.findViewById(R.id.XmlAccept);
                                             JavaNameShow = v.findViewById(R.id.XmlName);
                                             JavaNeedShow = v.findViewById(R.id.XmlNeedShow);
                                             JavaPhoneShow = v.findViewById(R.id.XmlPhoneShow);
@@ -674,6 +704,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                                 JavaCommissionShow.setText("Commission: "+emergencyDetails.commissionshow);
                                                 JavaPhoneShow.setText("Phone:" +emergencyDetails.phoneshow);
                                             }
+
+
+                                            JavaAccept.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    Toast.makeText(MapsActivity.this,"Accepted",Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
 //                                            else{
 //                                                Toast.makeText(MapsActivity.this,"Solved",Toast.LENGTH_SHORT).show();
 //                                                v = getLayoutInflater().inflate(R.layout.name,null);
@@ -1018,6 +1056,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onClick(View v) {
 
+        if( v == JavaAccept){
+            Toast.makeText(MapsActivity.this,"Accepted",Toast.LENGTH_SHORT).show();
+        }
+
         switch (v.getId()){
             case R.id.GoogleSignIn : SignIn();
                 break;
@@ -1108,6 +1150,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         if(v == JavaHelp) {
+
 
 
             if(firebaseUser != null){
