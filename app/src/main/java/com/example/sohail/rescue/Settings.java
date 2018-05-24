@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 public class Settings extends AppCompatActivity {
 
@@ -27,6 +28,7 @@ public class Settings extends AppCompatActivity {
                 Intent i = getBaseContext().getPackageManager()
                         .getLaunchIntentForPackage( getBaseContext().getPackageName() );
                 i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                Toast.makeText(Settings.this,"Restart app",Toast.LENGTH_SHORT).show();
                 startActivity(i);
             }
         });
@@ -38,6 +40,7 @@ public class Settings extends AppCompatActivity {
                 Intent i = getBaseContext().getPackageManager()
                         .getLaunchIntentForPackage( getBaseContext().getPackageName() );
                 i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                Toast.makeText(Settings.this,"Restart app",Toast.LENGTH_SHORT).show();
                 startActivity(i);
             }
         });
@@ -49,6 +52,7 @@ public class Settings extends AppCompatActivity {
                 Intent i = getBaseContext().getPackageManager()
                         .getLaunchIntentForPackage( getBaseContext().getPackageName() );
                 i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                Toast.makeText(Settings.this,"Restart app",Toast.LENGTH_SHORT).show();
                 startActivity(i);
             }
         });

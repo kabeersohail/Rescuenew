@@ -105,4 +105,5 @@
 
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="choose_your_map">Choose your map</string>
+    <string name="you">You:</string>
 </resources>

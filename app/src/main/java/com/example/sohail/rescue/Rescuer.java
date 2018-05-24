@@ -1,12 +1,16 @@
 package com.example.sohail.rescue;
 
 public class Rescuer {
-    double latitude,logitude;
+    double latitude,longitude;
     String name,uid;
 
-    public Rescuer(double latitude, double logitude, String name,String uid) {
+    public Rescuer(){
+
+    }
+
+    public Rescuer(double latitude, double longitude, String name,String uid) {
         this.latitude = latitude;
-        this.logitude = logitude;
+        this.longitude = longitude;
         this.name = name;
         this.uid = uid;
     }
@@ -27,12 +31,12 @@ public class Rescuer {
         this.latitude = latitude;
     }
 
-    public double getLogitude() {
-        return logitude;
+    public double getLongitude() {
+        return longitude;
     }
 
-    public void setLogitude(double logitude) {
-        this.logitude = logitude;
+    public void setLongitude(double logitude) {
+        this.longitude = logitude;
     }
 
     public String getName() {

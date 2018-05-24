@@ -7,6 +7,8 @@
          Google Maps Android API v2, but you must specify either coarse or fine
          location permissions for the 'MyLocation' functionality. 
     -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -77,6 +79,13 @@
         <service
             android:name=".HelloService"
             android:enabled="true" />
+        <service android:name=".ExampleJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            />
+        <service android:name=".ListenToDatabaseService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            />
 
         <receiver
             android:name=".SensorRestarterBroadcastReceiver"

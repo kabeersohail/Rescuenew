@@ -1,6 +1,7 @@
 package com.example.sohail.rescue;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -8,6 +9,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.TaskStackBuilder;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
@@ -102,18 +106,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     Thread t=null;
 
     Intent mServiceIntent;
-    private HelloService helloService;
-
     Context ctx;
-
     public Context getCtx() {
         return ctx;
     }
-
+    private static final String TAG = "MapsActivity";
 
     static String ProfilePicpath;
     int noti=0;
     private static double latitude,longitude;
+    HashMap<Marker,String> clickmarker = new HashMap<>();
     HashMap<String,Marker> hashMapMarker = new HashMap<>();
     HashMap<Marker,String> hashMapme = new HashMap<>();
     HashMap<Marker,Object> hashMapMarker1 = new HashMap<>();
@@ -170,7 +172,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 else if(items[which].equals("Gallery")){
                     Intent intent = new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                     intent.setType("image/*");
-                    startActivityForResult(intent.createChooser(intent,"Select File"),Select_File);
+                    startActivityForResult(Intent.createChooser(intent,"Select File"),Select_File);
                 }
                 else if(items[which].equals("Cancel")){
                     dialog.dismiss();
@@ -275,11 +277,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(toggle.onOptionsItemSelected(item))
-        {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        return toggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -297,14 +295,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public static class Emerg {
 
-
-        public Emerg(double lati, double longi) {
-
-        }
-
-    }
 
     private void SignIn(){
         Intent intent = Auth.GoogleSignInApi.getSignInIntent(apiClient);
@@ -332,6 +323,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(result.isSuccess()){
 //            startActivity(new Intent(MapsActivity.this,WelcomeGuide.class));
             GoogleSignInAccount account = result.getSignInAccount();
+            assert account != null;
             namE= account.getDisplayName();
 
 //            String email = account.getEmail();
@@ -386,6 +378,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(resultCode == Activity.RESULT_OK){
             if(requestCode == Request_Camera){
                 Bundle bundle = data.getExtras();
+                assert bundle != null;
                 final Bitmap bmp = (Bitmap) bundle.get("data");
                 circleImageView.setImageBitmap(bmp);
                ProfilePicpath = saveToInternalStorage(bmp);
@@ -442,6 +435,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             e.printStackTrace();
         } finally {
             try {
+                assert fos != null;
                 fos.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -468,6 +462,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        assert manager != null;
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (serviceClass.getName().equals(service.service.getClassName())) {
                 Log.i ("isMyServiceRunning?", true+"");
@@ -485,6 +480,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.i("MAINACT", "onDestroy!");
         super.onDestroy();
 
+    }
+
+    public void scheduleJob(View v) {
+        ComponentName componentName = new ComponentName(this, ExampleJobService.class);
+        JobInfo info = new JobInfo.Builder(123, componentName)
+//                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setPersisted(true)
+                .setPeriodic(5000)
+                .build();
+
+        JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        int resultCode = scheduler.schedule(info);
+        if (resultCode == JobScheduler.RESULT_SUCCESS) {
+            Toast.makeText(this,"Job Scheduled",Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Job scheduled");
+        } else {
+            Toast.makeText(this,"Job failed",Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Job scheduling failed");
+        }
+    }
+
+    public void cancelJob(View v) {
+        JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        scheduler.cancel(123);
+        Toast.makeText(this,"Job Canceled",Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "Job cancelled");
     }
 
     @Override
@@ -530,7 +551,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         toggle = new ActionBarDrawerToggle(this,drawerLayout,R.string.open,R.string.close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if(getSupportActionBar() != null){
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         mapLayout = findViewById(R.id.MapLayout);
         loadImageFromStorage( PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("Path", "defaultStringIfNothingFound"));
 
@@ -557,11 +580,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         if(firebaseUser!=null){
             ctx = this;
+            HelloService helloService;
             helloService = new HelloService(getCtx());
             mServiceIntent = new Intent(getCtx(), helloService.getClass());
             if (!isMyServiceRunning(helloService.getClass())) {
                 startService(mServiceIntent);
             }
+
+
+
         }
 
 
@@ -600,6 +627,54 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
+        DatabaseReference databaseReferenceRescuer = FirebaseDatabase.getInstance().getReference("Rescuer");
+        databaseReferenceRescuer.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Rescuer rescuer = dataSnapshot.getValue(Rescuer.class);
+                String Uid = dataSnapshot.getKey();
+                assert rescuer != null;
+                String name = rescuer.name;
+                double latitude = rescuer.latitude;
+                double longitude = rescuer.longitude;
+                MarkerOptions options = new MarkerOptions().title(name).position(new LatLng(latitude,longitude)).snippet(name);
+
+                Bitmap bitmap = createEmergencyBitmap();
+                if(bitmap!=null){
+                    options.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
+                    options.anchor(0.5f, 0.907f);
+                }
+
+                Marker marker = mMap.addMarker(options);
+                hashMapMarker.put(Uid,marker);
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                String Uid = dataSnapshot.getKey();
+                Marker marker = hashMapMarker.get(Uid);
+                if(marker!=null){
+                    marker.remove();
+
+                }
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         databaseReference = firebaseDatabase.getReference("Emergency");
         databaseReference.addChildEventListener(new ChildEventListener() {
@@ -645,31 +720,43 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                             @Override
-                            public void onInfoWindowClick(Marker marker) {
-                                String[] items={"Yes","No"};
-                                final AlertDialog.Builder itemDilog = new AlertDialog.Builder(MapsActivity.this);
-                                itemDilog.setTitle("Do you really want to accept request ?");
-                                itemDilog.setCancelable(true);
-                                itemDilog.setItems(items, new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        switch(which){
-                                            case 0:{
-                                                Toast.makeText(MapsActivity.this,"Request accepted",Toast.LENGTH_SHORT).show();
-                                                FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-                                                String uid = firebaseUser.getUid();
-                                                Rescuer rescuer = new Rescuer(MyLat,MyLong,namE,uid);
+                            public void onInfoWindowClick(final Marker marker) {
+                                String isRequestAccepted = "No";
+                                isRequestAccepted = clickmarker.get(marker);
 
-                                                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Rescuer");
-                                                databaseReference.child(uid).setValue(rescuer);
-                                            }break;
-                                            case 1:{
-                                                Toast.makeText(MapsActivity.this,"Request rejected",Toast.LENGTH_SHORT).show();
-                                            }break;
+                                if(isRequestAccepted == null){
+                                    String[] items={"Yes","No"};
+                                    final AlertDialog.Builder itemDilog = new AlertDialog.Builder(MapsActivity.this);
+                                    itemDilog.setTitle("Do you really want to accept request ?");
+                                    itemDilog.setCancelable(true);
+                                    itemDilog.setItems(items, new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            switch(which){
+                                                case 0:{
+
+                                                    Toast.makeText(MapsActivity.this,"Request accepted",Toast.LENGTH_SHORT).show();
+                                                    clickmarker.put(marker,"Accepted");
+                                                    FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+                                                    assert firebaseUser != null;
+                                                    String uid = firebaseUser.getUid();
+                                                    Rescuer rescuer = new Rescuer(MyLat,MyLong,namE,uid);
+
+                                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Rescuer");
+                                                    databaseReference.child(uid).setValue(rescuer);
+                                                }break;
+                                                case 1:{
+                                                    Toast.makeText(MapsActivity.this,"Request rejected",Toast.LENGTH_SHORT).show();
+                                                }break;
+                                            }
+
                                         }
+                                    });
+                                    itemDilog.show();
+                                }
+                                else {
+                                    Toast.makeText(MapsActivity.this,"Request already Accepted",Toast.LENGTH_SHORT).show();
+                                }
 
-                                    }
-                                });
-                                itemDilog.show();
                             }
                         });
 
@@ -682,39 +769,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
+                                @SuppressLint("SetTextI18n")
                                 @Override
                                 public View getInfoContents(Marker marker) {
-
+//                                    View vk = null;
                                     String amI = hashMapme.get(marker);
 
                                     EmergencyDetails emergencyDetails;
                                     emergencyDetails = (EmergencyDetails) hashMapMarker1.get(marker);
 
-                                    View v = getLayoutInflater().inflate(R.layout.accept_request,null);
+                                    if(emergencyDetails!=null){
+                                        View v = getLayoutInflater().inflate(R.layout.accept_request,null);
 
-                                    if(amI == null) {
+                                        if(amI == null) {
 
-                                        if(!namE.equals(name)){
-                                            JavaAccept = v.findViewById(R.id.XmlAccept);
-                                            JavaNameShow = v.findViewById(R.id.XmlName);
-                                            JavaNeedShow = v.findViewById(R.id.XmlNeedShow);
-                                            JavaPhoneShow = v.findViewById(R.id.XmlPhoneShow);
-                                            JavaCommissionShow = v.findViewById(R.id.XmlComissionShow);
-                                            emergencyDetails = (EmergencyDetails) hashMapMarker1.get(marker);
-                                            if(JavaNameShow != null && JavaNeedShow != null && JavaCommissionShow!= null && JavaPhoneShow!=null & emergencyDetails != null){
-                                                JavaNameShow.setText(emergencyDetails.nameshow);
-                                                JavaNeedShow.setText("Need: "+emergencyDetails.needshow);
-                                                JavaCommissionShow.setText("Commission: "+emergencyDetails.commissionshow);
-                                                JavaPhoneShow.setText("Phone:" +emergencyDetails.phoneshow);
-                                            }
-
-
-                                            JavaAccept.setOnClickListener(new View.OnClickListener() {
-                                                @Override
-                                                public void onClick(View v) {
-                                                    Toast.makeText(MapsActivity.this,"Accepted",Toast.LENGTH_SHORT).show();
+                                            if(!namE.equals(name)){
+                                                JavaAccept = v.findViewById(R.id.XmlAccept);
+                                                JavaNameShow = v.findViewById(R.id.XmlName);
+                                                JavaNeedShow = v.findViewById(R.id.XmlNeedShow);
+                                                JavaPhoneShow = v.findViewById(R.id.XmlPhoneShow);
+                                                JavaCommissionShow = v.findViewById(R.id.XmlComissionShow);
+                                                emergencyDetails = (EmergencyDetails) hashMapMarker1.get(marker);
+                                                if(JavaNameShow != null && JavaNeedShow != null && JavaCommissionShow!= null && JavaPhoneShow!=null & emergencyDetails != null){
+                                                    JavaNameShow.setText(emergencyDetails.nameshow);
+                                                    JavaNeedShow.setText("Need: "+emergencyDetails.needshow);
+                                                    JavaCommissionShow.setText("Commission: "+emergencyDetails.commissionshow);
+                                                    JavaPhoneShow.setText("Phone:" +emergencyDetails.phoneshow);
                                                 }
-                                            });
+
+
+                                                JavaAccept.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View v) {
+                                                        Toast.makeText(MapsActivity.this,"Accepted",Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
 //                                            else{
 //                                                Toast.makeText(MapsActivity.this,"Solved",Toast.LENGTH_SHORT).show();
 //                                                v = getLayoutInflater().inflate(R.layout.name,null);
@@ -722,17 +811,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                                                JavaNameShow.setText("You: "+namE);
 //                                            }
 
-                                        }
+                                            }
 //                                        Toast.makeText(MapsActivity.this,"Others",Toast.LENGTH_SHORT).show();
+                                        }
+                                        else{
+                                        Toast.makeText(MapsActivity.this,"Solved",Toast.LENGTH_SHORT).show();
+                                            v = getLayoutInflater().inflate(R.layout.name,null);
+                                            JavaNameShow = v.findViewById(R.id.Xmlnamepro);
+                                            JavaNameShow.setText("You: "+namE);
+                                        Toast.makeText(MapsActivity.this,"You",Toast.LENGTH_SHORT).show();
+                                            return v;
+                                        }
+                                        return v;
                                     }
                                     else{
-//                                        Toast.makeText(MapsActivity.this,"Solved",Toast.LENGTH_SHORT).show();
-                                        v = getLayoutInflater().inflate(R.layout.name,null);
+                                        Toast.makeText(MapsActivity.this,"Solved",Toast.LENGTH_SHORT).show();
+                                        View v = getLayoutInflater().inflate(R.layout.name,null);
                                         JavaNameShow = v.findViewById(R.id.Xmlnamepro);
                                         JavaNameShow.setText("You: "+namE);
-//                                        Toast.makeText(MapsActivity.this,"You",Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MapsActivity.this,"You",Toast.LENGTH_SHORT).show();
+                                        return v;
                                     }
-                                    return v;
+
                                 }
                             });
                         }
@@ -777,7 +877,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     final String Need = (String) dataSnapshot.child("need").getValue();
                     final String Commission = (String) dataSnapshot.child("commission").getValue();
                     if(!namE.equals(name)){
-                        double dist = DistenceBwTwoLocations.Distence(MyLat,MyLong,latitude,longitude);
+                        double dist;
+                        dist = DistenceBwTwoLocations.Distence(MyLat,MyLong,latitude,longitude);
 //                        if(dist<2000){
 
 //                            if(!namE.equals(dataSnapshot.getKey())){
@@ -872,6 +973,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     {
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
+        assert firebaseUser != null;
         namE =firebaseUser.getDisplayName();
     }
 
@@ -879,6 +981,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
 
+        assert firebaseUser != null;
         phonE = firebaseUser.getPhoneNumber();
     }
 
@@ -907,6 +1010,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 this, R.raw.mapstyle));
 
                 if (!success) {
+                    Toast.makeText(MapsActivity.this,"find me",Toast.LENGTH_SHORT).show();
 //                Log.e(TAG, "Style parsing failed.");
                 }
             } catch (Resources.NotFoundException e) {
@@ -923,6 +1027,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 this, R.raw.darkmap));
 
                 if (!success) {
+                    Toast.makeText(MapsActivity.this,"find me too",Toast.LENGTH_SHORT).show();
 //                Log.e(TAG, "Style parsing failed.");
                 }
             } catch (Resources.NotFoundException e) {
@@ -944,12 +1049,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 @Override
                 public View getInfoContents(Marker marker) {
-                    View v = getLayoutInflater().inflate(R.layout.accept_request,null);
+//                    View v = getLayoutInflater().inflate(R.layout.accept_request,null);
                     return null;
                 }
             });
         }
 
+        assert mMap != null;
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
@@ -1010,11 +1116,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private Bitmap createUserBitmap() {
         Bitmap result = null;
+        Drawable drawable = null;
         try {
             result = Bitmap.createBitmap(dpo(62), dpo(76), Bitmap.Config.ARGB_8888);
             result.eraseColor(Color.TRANSPARENT);
             Canvas canvas = new Canvas(result);
-            Drawable drawable = getResources().getDrawable(R.drawable.locaterblack);
+            String k = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("MapStyle", "defaultStringIfNothingFound");
+            switch (k) {
+                case "Navybluemap":
+                    drawable = getResources().getDrawable(R.drawable.locaterwhite);
+                    break;
+                case "dark":
+                    drawable = getResources().getDrawable(R.drawable.locaterwhite);
+                    break;
+                case "normal":
+                    drawable = getResources().getDrawable(R.drawable.locateroblue);
+                    break;
+            }
+            assert drawable != null;
             drawable.setBounds(0, 0, dpo(62), dpo(76));
             drawable.draw(canvas);
 
@@ -1171,7 +1290,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 latitude=17.6786067;
                 longitude=83.1907674;
                 if(namE!=null){
-                    Location location = new Location(namE,latitude,longitude,count);
+//                    Location location = new Location(namE,latitude,longitude,count);
                     databaseReference = firebaseDatabase.getReference("Location");
 //                    databaseReference.child(Uid).setValue(location);
                 }
@@ -1184,7 +1303,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 final EditText JavaNeed = mview.findViewById(R.id.XmlNeed);
                 final EditText JavaPhone = mview.findViewById(R.id.XmlPhone);
                 final EditText JavaComission = mview.findViewById(R.id.XmlComission);
-                Button JavaHelpDialog = (Button) mview.findViewById(R.id.XmlHelpC);
+                Button JavaHelpDialog = mview.findViewById(R.id.XmlHelpC);
                 JavaHelpDialog.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -1292,8 +1411,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             longitude=gps.getLongitude();
             LatLng home = new LatLng(latitude,longitude);
             if(namE!=null){
-                int height = 150;
-                int width = 140;
+//                int height = 150;
+//                int width = 140;
 //                BitmapDrawable bitmapdraw=(BitmapDrawable)getResources().getDrawable(R.drawable.mylocator);
 //                Bitmap b=bitmapdraw.getBitmap();
 //                Bitmap smallMarker = Bitmap.createScaledBitmap(b, width, height, false);
@@ -1301,7 +1420,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                hashMapme.put(MyMarker,"BLUE");
 
                 LatLng latLng = new LatLng(latitude,longitude);
-                MarkerOptions options = new MarkerOptions().position(latLng);
+//                MarkerOptions options = new MarkerOptions().position(latLng).snippet(namE);
+                MarkerOptions options = new MarkerOptions().title(namE).position(new LatLng(latitude,longitude)).snippet(namE);
                 Bitmap bitmap = createUserBitmap();
                 if(bitmap!=null){
 
@@ -1351,24 +1471,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                                            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
 //                                            mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
                                         }
-
-                                        if(namE!=null)
-                                        {
-//                                            Location location = new Location(namE,latitude,longitude,count);
-//                                            FirebaseDatabase fb = FirebaseDatabase.getInstance();
-//                                            DatabaseReference db = fb.getReference("Location");
-//                                                db.child(Uid).setValue(location);
-//                                                db.child(Uid).setValue("Sohail");
-//                                                db.child(Uid).child("Latitude").setValue(latitude);
-//                                                db.child(Uid).child("Longitude").setValue(longitude);
-//                                                db.child(Uid).child("Name").setValue(namE);
-//                                                db.child(Uid).child("Time").setValue(count);
-//                                            JavaThread.setText(String.valueOf(count));
-                                        }
-//                                        else
-//                                        {
-//                                                Toast.makeText(MapsActivity.this,"Name not Recieved",Toast.LENGTH_SHORT).show();
-//                                        }
                                     }
 
                                 });
